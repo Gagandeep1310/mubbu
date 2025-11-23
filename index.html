@@ -11,9 +11,6 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <style>
         * {
             margin: 0;
@@ -22,7 +19,7 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Calibri', 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
@@ -45,7 +42,7 @@
         }
 
         .header h1 {
-            font-size: 3em;
+            font-size: 2.8em;
             font-weight: 700;
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
@@ -69,6 +66,7 @@
             font-size: 1.1em;
             cursor: pointer;
             transition: transform 0.3s ease;
+            font-family: 'Calibri', sans-serif;
         }
 
         .upload-btn:hover {
@@ -108,6 +106,7 @@
         .metric-icon {
             font-size: 2.5em;
             margin-bottom: 15px;
+            color: #667eea;
         }
 
         .metric-value {
@@ -154,6 +153,7 @@
             border-radius: 20px;
             cursor: pointer;
             transition: background 0.3s ease;
+            font-family: 'Calibri', sans-serif;
         }
 
         .time-toggle.active {
@@ -214,6 +214,7 @@
             border-radius: 25px;
             cursor: pointer;
             transition: background 0.3s ease;
+            font-family: 'Calibri', sans-serif;
         }
 
         .filter-btn.active {
@@ -235,7 +236,7 @@
 
         .review-header {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }
@@ -275,6 +276,7 @@
         .insight-icon {
             font-size: 1.5em;
             margin-top: 2px;
+            color: #10b981;
         }
 
         /* Export Section */
@@ -294,12 +296,32 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
+            font-family: 'Calibri', sans-serif;
         }
 
         .export-btn:hover {
             background: #667eea;
             color: white;
             transform: translateY(-2px);
+        }
+
+        /* File Upload */
+        .file-input {
+            display: none;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
         }
 
         /* Responsive Design */
@@ -325,12 +347,16 @@
     </style>
 </head>
 <body>
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
     <div class="container">
         <!-- 1️⃣ Top Header -->
         <header class="header">
-            <h1>🤖 AI-Powered Market Insights Dashboard</h1>
+            <h1>AI-Powered Market Insights Dashboard</h1>
             <p class="subtitle">Analyze product reviews, extract customer sentiment, and discover actionable insights</p>
-            <button class="upload-btn">
+            <input type="file" id="fileInput" class="file-input" accept=".csv,.json">
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
                 <i class="fas fa-upload"></i> Upload Reviews (CSV/JSON)
             </button>
         </header>
@@ -338,26 +364,26 @@
         <!-- 2️⃣ Key Insight Overview -->
         <div class="card-grid">
             <div class="card metric-card positive">
-                <div class="metric-icon">⭐</div>
+                <div class="metric-icon"><i class="fas fa-star"></i></div>
                 <div class="metric-value">4.3 / 5</div>
                 <div class="metric-label">Average Rating</div>
             </div>
             
             <div class="card metric-card positive">
-                <div class="metric-icon">📈</div>
+                <div class="metric-icon"><i class="fas fa-chart-line"></i></div>
                 <div class="metric-value">+0.78</div>
                 <div class="metric-label">Average Sentiment Score</div>
                 <div class="metric-description">Positive</div>
             </div>
             
             <div class="card metric-card info">
-                <div class="metric-icon">📝</div>
+                <div class="metric-icon"><i class="fas fa-file-alt"></i></div>
                 <div class="metric-value">1,250</div>
                 <div class="metric-label">Total Reviews Analyzed</div>
             </div>
             
             <div class="card metric-card warning">
-                <div class="metric-icon">📊</div>
+                <div class="metric-icon"><i class="fas fa-chart-bar"></i></div>
                 <div class="metric-value">+0.62</div>
                 <div class="metric-label">Sentiment-Rating Correlation</div>
                 <div class="metric-description">Strong</div>
@@ -366,7 +392,7 @@
 
         <!-- 3️⃣ Customer Sentiment Breakdown -->
         <div class="section-header">
-            <h2 class="section-title">📊 Customer Sentiment Breakdown</h2>
+            <h2 class="section-title">Customer Sentiment Breakdown</h2>
         </div>
         <div class="chart-container">
             <div id="sentiment-chart"></div>
@@ -374,11 +400,11 @@
 
         <!-- 4️⃣ Sentiment Trend Over Time -->
         <div class="section-header">
-            <h2 class="section-title">📉 Sentiment Trend Over Time</h2>
+            <h2 class="section-title">Sentiment Trend Over Time</h2>
             <div class="section-controls">
-                <button class="time-toggle">📆 Last 30 days</button>
-                <button class="time-toggle active">Last 6 months</button>
-                <button class="time-toggle">1 year</button>
+                <button class="time-toggle" onclick="changeTimeRange('30days')">Last 30 days</button>
+                <button class="time-toggle active" onclick="changeTimeRange('6months')">Last 6 months</button>
+                <button class="time-toggle" onclick="changeTimeRange('1year')">1 year</button>
             </div>
         </div>
         <div class="chart-container">
@@ -387,16 +413,18 @@
 
         <!-- 5️⃣ Word & Topic Analysis -->
         <div class="section-header">
-            <h2 class="section-title">🔍 Word & Topic Analysis</h2>
+            <h2 class="section-title">Word & Topic Analysis</h2>
         </div>
         <div class="multi-panel">
             <div class="chart-container">
                 <h3>Word Cloud</h3>
                 <div id="wordcloud-container">
-                    <!-- Word cloud will be generated here -->
                     <div style="text-align: center; padding: 40px; background: #f8fafc; border-radius: 10px;">
                         <i class="fas fa-cloud" style="font-size: 3em; color: #667eea; margin-bottom: 15px;"></i>
                         <p>Interactive word cloud visualization</p>
+                        <button onclick="generateWordCloud()" style="margin-top: 15px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Generate Word Cloud
+                        </button>
                     </div>
                 </div>
             </div>
@@ -404,48 +432,48 @@
             <div class="chart-container">
                 <h3>Topic Clusters</h3>
                 <div class="topic-grid">
-                    <div class="topic-item topic-positive">
+                    <div class="topic-item topic-positive" onclick="filterByTopic('storyline')" style="cursor: pointer;">
                         <div>
                             <strong>Storyline</strong>
                             <div style="color: #666; font-size: 0.9em;">Character development & plot</div>
                         </div>
-                        <div class="topic-sentiment">⬈ Positive</div>
+                        <div class="topic-sentiment">Positive</div>
                     </div>
-                    <div class="topic-item topic-positive">
+                    <div class="topic-item topic-positive" onclick="filterByTopic('characters')" style="cursor: pointer;">
                         <div>
                             <strong>Character Development</strong>
                             <div style="color: #666; font-size: 0.9em;">Depth & growth</div>
                         </div>
-                        <div class="topic-sentiment">⬈ Positive</div>
+                        <div class="topic-sentiment">Positive</div>
                     </div>
-                    <div class="topic-item topic-negative">
+                    <div class="topic-item topic-negative" onclick="filterByTopic('price')" style="cursor: pointer;">
                         <div>
                             <strong>Price/Value</strong>
                             <div style="color: #666; font-size: 0.9em;">Cost concerns</div>
                         </div>
-                        <div class="topic-sentiment">⬊ Negative</div>
+                        <div class="topic-sentiment">Negative</div>
                     </div>
-                    <div class="topic-item topic-negative">
+                    <div class="topic-item topic-negative" onclick="filterByTopic('shipping')" style="cursor: pointer;">
                         <div>
                             <strong>Shipping / Delivery</strong>
                             <div style="color: #666; font-size: 0.9em;">Delivery times</div>
                         </div>
-                        <div class="topic-sentiment">⬊ Negative</div>
+                        <div class="topic-sentiment">Negative</div>
                     </div>
                 </div>
                 
                 <h4 style="margin-top: 25px;">Key Opinion Phrases</h4>
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
-                    <span style="background: #dcfce7; color: #166534; padding: 8px 15px; border-radius: 20px; font-size: 0.9em;">
+                    <span style="background: #dcfce7; color: #166534; padding: 8px 15px; border-radius: 20px; font-size: 0.9em; cursor: pointer;" onclick="searchPhrase('loved the characters')">
                         "loved the characters"
                     </span>
-                    <span style="background: #fee2e2; color: #991b1b; padding: 8px 15px; border-radius: 20px; font-size: 0.9em;">
+                    <span style="background: #fee2e2; color: #991b1b; padding: 8px 15px; border-radius: 20px; font-size: 0.9em; cursor: pointer;" onclick="searchPhrase('too expensive')">
                         "too expensive"
                     </span>
-                    <span style="background: #fee2e2; color: #991b1b; padding: 8px 15px; border-radius: 20px; font-size: 0.9em;">
+                    <span style="background: #fee2e2; color: #991b1b; padding: 8px 15px; border-radius: 20px; font-size: 0.9em; cursor: pointer;" onclick="searchPhrase('shipping was delayed')">
                         "shipping was delayed"
                     </span>
-                    <span style="background: #dcfce7; color: #166534; padding: 8px 15px; border-radius: 20px; font-size: 0.9em;">
+                    <span style="background: #dcfce7; color: #166534; padding: 8px 15px; border-radius: 20px; font-size: 0.9em; cursor: pointer;" onclick="searchPhrase('great emotional depth')">
                         "great emotional depth"
                     </span>
                 </div>
@@ -454,7 +482,7 @@
 
         <!-- 6️⃣ Ratings Distribution -->
         <div class="section-header">
-            <h2 class="section-title">⭐ Ratings Distribution</h2>
+            <h2 class="section-title">Ratings Distribution</h2>
         </div>
         <div class="chart-container">
             <div id="ratings-chart"></div>
@@ -462,54 +490,62 @@
 
         <!-- 7️⃣ Review Explorer -->
         <div class="section-header">
-            <h2 class="section-title">🔎 Review Explorer</h2>
+            <h2 class="section-title">Review Explorer</h2>
         </div>
         <div class="chart-container">
             <div class="filters">
                 <div>
                     <strong>Sentiment:</strong>
-                    <button class="filter-btn active">All</button>
-                    <button class="filter-btn">Positive</button>
-                    <button class="filter-btn">Neutral</button>
-                    <button class="filter-btn">Negative</button>
+                    <button class="filter-btn active" onclick="filterReviews('all', 'sentiment')">All</button>
+                    <button class="filter-btn" onclick="filterReviews('positive', 'sentiment')">Positive</button>
+                    <button class="filter-btn" onclick="filterReviews('neutral', 'sentiment')">Neutral</button>
+                    <button class="filter-btn" onclick="filterReviews('negative', 'sentiment')">Negative</button>
                 </div>
                 <div>
                     <strong>Rating:</strong>
-                    <button class="filter-btn">1⭐</button>
-                    <button class="filter-btn">2⭐</button>
-                    <button class="filter-btn">3⭐</button>
-                    <button class="filter-btn">4⭐</button>
-                    <button class="filter-btn active">5⭐</button>
+                    <button class="filter-btn" onclick="filterReviews('1', 'rating')">1 Star</button>
+                    <button class="filter-btn" onclick="filterReviews('2', 'rating')">2 Stars</button>
+                    <button class="filter-btn" onclick="filterReviews('3', 'rating')">3 Stars</button>
+                    <button class="filter-btn" onclick="filterReviews('4', 'rating')">4 Stars</button>
+                    <button class="filter-btn active" onclick="filterReviews('5', 'rating')">5 Stars</button>
                 </div>
             </div>
             
-            <div class="review-cards">
-                <div class="review-card">
+            <div class="review-cards" id="review-cards">
+                <div class="review-card" data-sentiment="positive" data-rating="4">
                     <div class="review-header">
-                        <div class="review-rating">⭐⭐⭐⭐</div>
+                        <div class="review-rating">4 Stars</div>
                         <div class="review-sentiment sentiment-positive">Positive</div>
                     </div>
                     <p>"The story was emotional and engaging, but the price felt too high for the content length. Overall enjoyed the character development."</p>
                 </div>
                 
-                <div class="review-card">
+                <div class="review-card" data-sentiment="negative" data-rating="2">
                     <div class="review-header">
-                        <div class="review-rating">⭐⭐</div>
+                        <div class="review-rating">2 Stars</div>
                         <div class="review-sentiment sentiment-negative">Negative</div>
                     </div>
                     <p>"Shipping took three weeks longer than promised. The book arrived with damaged corners. Very disappointed with the service."</p>
+                </div>
+
+                <div class="review-card" data-sentiment="positive" data-rating="5">
+                    <div class="review-header">
+                        <div class="review-rating">5 Stars</div>
+                        <div class="review-sentiment sentiment-positive">Positive</div>
+                    </div>
+                    <p>"Absolutely loved the character development and storyline. One of the best books I've read this year!"</p>
                 </div>
             </div>
         </div>
 
         <!-- 8️⃣ AI Insights Summary -->
         <div class="section-header">
-            <h2 class="section-title">🧠 AI Insights Summary</h2>
+            <h2 class="section-title">AI Insights Summary</h2>
         </div>
         <div class="chart-container">
             <div class="insights-grid">
                 <div class="insight-item">
-                    <div class="insight-icon">✔</div>
+                    <div class="insight-icon"><i class="fas fa-check"></i></div>
                     <div>
                         <strong>Most positive reviews mention character development and emotional impact</strong>
                         <p style="margin-top: 5px; opacity: 0.9;">68% of 5-star reviews highlight these aspects</p>
@@ -517,7 +553,7 @@
                 </div>
                 
                 <div class="insight-item">
-                    <div class="insight-icon">⚠️</div>
+                    <div class="insight-icon"><i class="fas fa-exclamation-triangle"></i></div>
                     <div>
                         <strong>Price and delivery are common complaints in negative reviews</strong>
                         <p style="margin-top: 5px; opacity: 0.9;">42% of negative reviews mention these issues</p>
@@ -525,7 +561,7 @@
                 </div>
                 
                 <div class="insight-item">
-                    <div class="insight-icon">📈</div>
+                    <div class="insight-icon"><i class="fas fa-chart-line"></i></div>
                     <div>
                         <strong>Sentiment improved by 18% in the last month</strong>
                         <p style="margin-top: 5px; opacity: 0.9;">New product features well-received</p>
@@ -533,7 +569,7 @@
                 </div>
                 
                 <div class="insight-item">
-                    <div class="insight-icon">🚚</div>
+                    <div class="insight-icon"><i class="fas fa-shipping-fast"></i></div>
                     <div>
                         <strong>78% of 1-star reviews mention shipping delays</strong>
                         <p style="margin-top: 5px; opacity: 0.9;">Logistics is the primary pain point</p>
@@ -544,17 +580,17 @@
 
         <!-- 9️⃣ Export & Share Section -->
         <div class="section-header">
-            <h2 class="section-title">📤 Export & Share</h2>
+            <h2 class="section-title">Export & Share</h2>
         </div>
         <div class="chart-container" style="text-align: center;">
             <div class="export-buttons">
-                <button class="export-btn">
+                <button class="export-btn" onclick="exportPDF()">
                     <i class="fas fa-file-pdf"></i> Export PDF Report
                 </button>
-                <button class="export-btn">
+                <button class="export-btn" onclick="exportCharts()">
                     <i class="fas fa-download"></i> Download Charts (PNG/SVG)
                 </button>
-                <button class="export-btn">
+                <button class="export-btn" onclick="exportCSV()">
                     <i class="fas fa-file-csv"></i> Export Data to CSV
                 </button>
             </div>
@@ -595,7 +631,7 @@
 
         const ratingsData = [{
             x: [650, 350, 150, 60, 40],
-            y: ['⭐⭐⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐', '⭐⭐', '⭐'],
+            y: ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'],
             type: 'bar',
             orientation: 'h',
             marker: { color: '#f59e0b' }
@@ -611,6 +647,102 @@
         Plotly.newPlot('sentiment-chart', sentimentData, sentimentLayout);
         Plotly.newPlot('trend-chart', trendData, trendLayout);
         Plotly.newPlot('ratings-chart', ratingsData, ratingsLayout);
+
+        // Function to show notifications
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.background = type === 'success' ? '#10b981' : '#ef4444';
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // File upload functionality
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                showNotification(`File "${file.name}" uploaded successfully! Processing data...`);
+                // Simulate processing delay
+                setTimeout(() => {
+                    showNotification('Data processed successfully! Dashboard updated.');
+                }, 2000);
+            }
+        });
+
+        // Time range functionality
+        function changeTimeRange(range) {
+            document.querySelectorAll('.time-toggle').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            showNotification(`Time range changed to: ${event.target.textContent}`);
+            
+            // Update chart data based on time range
+            // This would typically fetch new data from your backend
+        }
+
+        // Filter reviews functionality
+        function filterReviews(value, type) {
+            const reviews = document.querySelectorAll('.review-card');
+            const filterBtns = event.target.parentElement.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            reviews.forEach(review => {
+                if (value === 'all') {
+                    review.style.display = 'block';
+                } else {
+                    const reviewValue = review.getAttribute(`data-${type}`);
+                    review.style.display = reviewValue === value ? 'block' : 'none';
+                }
+            });
+
+            showNotification(`Filtered by: ${event.target.textContent}`);
+        }
+
+        // Topic filtering
+        function filterByTopic(topic) {
+            showNotification(`Filtering by topic: ${topic}`);
+            // This would typically filter the entire dashboard by topic
+        }
+
+        // Phrase search
+        function searchPhrase(phrase) {
+            showNotification(`Searching for: "${phrase}"`);
+            // This would typically highlight or filter reviews containing the phrase
+        }
+
+        // Word cloud generation
+        function generateWordCloud() {
+            showNotification('Generating word cloud...');
+            // Simulate word cloud generation
+            setTimeout(() => {
+                showNotification('Word cloud generated successfully!');
+            }, 1500);
+        }
+
+        // Export functionality
+        function exportPDF() {
+            showNotification('Preparing PDF report...');
+            setTimeout(() => {
+                showNotification('PDF report downloaded successfully!');
+            }, 2000);
+        }
+
+        function exportCharts() {
+            showNotification('Downloading charts...');
+            setTimeout(() => {
+                showNotification('Charts downloaded successfully!');
+            }, 1500);
+        }
+
+        function exportCSV() {
+            showNotification('Exporting data to CSV...');
+            setTimeout(() => {
+                showNotification('CSV file downloaded successfully!');
+            }, 1500);
+        }
 
         // Add interactivity to buttons
         document.querySelectorAll('.time-toggle').forEach(btn => {
