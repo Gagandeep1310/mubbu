@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Market Insights Dashboard</title>
+    
+    <!-- Plotly for charts -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Styles */
+        .header {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .header .subtitle {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Card Grid Layout */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-card {
+            text-align: center;
+            border-left: 5px solid;
+        }
+
+        .metric-card.positive { border-left-color: #10b981; }
+        .metric-card.warning { border-left-color: #f59e0b; }
+        .metric-card.info { border-left-color: #3b82f6; }
+
+        .metric-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .metric-value {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .metric-description {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 50px 0 20px 0;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: white;
+        }
+
+        .section-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .time-toggle {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .time-toggle.active {
+            background: white;
+            color: #667eea;
+        }
+
+        /* Chart Containers */
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .multi-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        /* Topic Clusters */
+        .topic-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .topic-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+
+        .topic-positive { border-left-color: #10b981; }
+        .topic-negative { border-left-color: #ef4444; }
+
+        .topic-sentiment {
+            font-size: 1.2em;
+        }
+
+        /* Review Explorer */
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: #f1f5f9;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .review-cards {
+            display: grid;
+            gap: 20px;
+        }
+
+        .review-card {
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            background: white;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .review-rating {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .review-sentiment {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .sentiment-positive { background: #dcfce7; color: #166534; }
+        .sentiment-negative { background: #fee2e2; color: #991b1b; }
+        .sentiment-neutral { background: #fef3c7; color: #92400e; }
+
+        /* AI Insights */
+        .insights-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: start;
+            gap: 15px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .insight-icon {
+            font-size: 1.5em;
+            margin-top: 2px;
+        }
+
+        /* Export Section */
+        .export-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .export-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .multi-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 1️⃣ Top Header -->
+        <header class="header">
+            <h1>🤖 AI-Powered Market Insights Dashboard</h1>
+            <p class="subtitle">Analyze product reviews, extract customer sentiment, and discover actionable insights</p>
+            <button class="upload-btn">
+                <i class="fas fa-upload"></i> Upload Reviews (CSV/JSON)
+            </button>
+        </header>
+
+        <!-- 2️⃣ Key Insight Overview -->
+        <div class="card-grid">
+            <div class="card metric-card positive">
+                <div class="metric-icon">⭐</div>
+                <div class="metric-value">4.3 / 5</div>
+                <div class="metric-label">Average Rating</div>
+            </div>
+            
+            <div class="card metric-card positive">
+                <div class="metric-icon">📈</div>
+                <div class="metric-value">+0.78</div>
+                <div class="metric-label">Average Sentiment Score</div>
+                <div class="metric-description">Positive</div>
+            </div>
+            
+            <div class="card metric-card info">
+                <div class="metric-icon">📝</div>
+                <div class="metric-value">1,250</div>
+                <div class="metric-label">Total Reviews Analyzed</div>
+            </div>
+            
+            <div class="card metric-card warning">
+                <div class="metric-icon">📊</div>
+                <div class="metric-value">+0.62</div>
+                <div class="metric-label">Sentiment-Rating Correlation</div>
+                <div class="metric-description">Strong</div>
+            </div>
+        </div>
+
+        <!-- 3️⃣ Customer Sentiment Breakdown -->
+        <div class="section-header">
+            <h2 class="section-title">📊 Customer Sentiment Breakdown</h2>
+        </div>
+        <div class="chart-container">
+            <div id="sentiment-chart"></div>
+        </div>
+
+        <!-- 4️⃣ Sentiment Trend Over Time -->
+        <div class="section-header">
+            <h2 class="section-title">📉 Sentiment Trend Over Time</h2>
+            <div class="section-controls">
+                <button class="time-toggle">📆 Last 30 days</button>
+                <button class="time-toggle active">Last 6 months</button>
+                <button class="time-toggle">1 year</button>
+            </div>
+        </div>
+        <div class="chart-container">
+            <div id="trend-chart"></div>
+        </div>
+
+        <!-- 5️⃣ Word & Topic Analysis -->
+        <div class="section-header">
+            <h2 class="section-title">🔍 Word & Topic Analysis</h2>
+        </div>
+        <div class="multi-panel">
+            <div class="chart-container">
+                <h3>Word Cloud</h3>
+                <div id="wordcloud-container">
+                    <!-- Word cloud will be generated here -->
+                    <div style="text-align: center; padding: 40px; background: #f8fafc; border-radius: 10px;">
+                        <i class="fas fa-cloud" style="font-size: 3em; color: #667eea; margin-bottom: 15px;"></i>
+                        <p>Interactive word cloud visualization</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Topic Clusters</h3>
+                <div class="topic-grid">
+                    <div class="topic-item topic-positive">
+                        <div>
+                            <strong>Storyline</strong>
+                            <div style="color: #666; font-size: 0.9em;">Character development & plot</div>
+                        </div>
+                        <div class="topic-sentiment">⬈ Positive</div>
+                    </div>
+                    <div class="topic-item topic-positive">
+                        <div>
+                            <strong>Character Development</strong>
+                            <div style="color: #666; font-size: 0.9em;">Depth & growth</div>
+                        </div>
+                        <div class="topic-sentiment">⬈ Positive</div>
+                    </div>
+                    <div class="topic-item topic-negative">
+                        <div>
+                            <strong>Price/Value</strong>
+                            <div style="color: #666; font-size: 0.9em;">Cost concerns</div>
+                        </div>
+                        <div class="topic-sentiment">⬊ Negative</div>
+                    </div>
+                    <div class="topic-item topic-negative">
+                        <div>
+                            <strong>Shipping / Delivery</strong>
+                            <div style="color: #666; font-size: 0.9em;">Delivery times</div>
+                        </div>
+                        <div class="topic-sentiment">⬊ Negative</div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 25px;">Key Opinion Phrases</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+                    <span style="background: #dcfce7; color: #166534; padding: 8px 15px; border-radius: 20px; font-size: 0.9em;">
+                        "loved the characters"
+                    </span>
+                    <span style="background: #fee2e2; color: #991b1b; padding: 8px 15px; border-radius: 20px; font-size: 0.9em;">
+                        "too expensive"
+                    </span>
+                    <span style="background: #fee2e2; color: #991b1b; padding: 8px 15px; border-radius: 20px; font-size: 0.9em;">
+                        "shipping was delayed"
+                    </span>
+                    <span style="background: #dcfce7; color: #166534; padding: 8px 15px; border-radius: 20px; font-size: 0.9em;">
+                        "great emotional depth"
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6️⃣ Ratings Distribution -->
+        <div class="section-header">
+            <h2 class="section-title">⭐ Ratings Distribution</h2>
+        </div>
+        <div class="chart-container">
+            <div id="ratings-chart"></div>
+        </div>
+
+        <!-- 7️⃣ Review Explorer -->
+        <div class="section-header">
+            <h2 class="section-title">🔎 Review Explorer</h2>
+        </div>
+        <div class="chart-container">
+            <div class="filters">
+                <div>
+                    <strong>Sentiment:</strong>
+                    <button class="filter-btn active">All</button>
+                    <button class="filter-btn">Positive</button>
+                    <button class="filter-btn">Neutral</button>
+                    <button class="filter-btn">Negative</button>
+                </div>
+                <div>
+                    <strong>Rating:</strong>
+                    <button class="filter-btn">1⭐</button>
+                    <button class="filter-btn">2⭐</button>
+                    <button class="filter-btn">3⭐</button>
+                    <button class="filter-btn">4⭐</button>
+                    <button class="filter-btn active">5⭐</button>
+                </div>
+            </div>
+            
+            <div class="review-cards">
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-rating">⭐⭐⭐⭐</div>
+                        <div class="review-sentiment sentiment-positive">Positive</div>
+                    </div>
+                    <p>"The story was emotional and engaging, but the price felt too high for the content length. Overall enjoyed the character development."</p>
+                </div>
+                
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-rating">⭐⭐</div>
+                        <div class="review-sentiment sentiment-negative">Negative</div>
+                    </div>
+                    <p>"Shipping took three weeks longer than promised. The book arrived with damaged corners. Very disappointed with the service."</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8️⃣ AI Insights Summary -->
+        <div class="section-header">
+            <h2 class="section-title">🧠 AI Insights Summary</h2>
+        </div>
+        <div class="chart-container">
+            <div class="insights-grid">
+                <div class="insight-item">
+                    <div class="insight-icon">✔</div>
+                    <div>
+                        <strong>Most positive reviews mention character development and emotional impact</strong>
+                        <p style="margin-top: 5px; opacity: 0.9;">68% of 5-star reviews highlight these aspects</p>
+                    </div>
+                </div>
+                
+                <div class="insight-item">
+                    <div class="insight-icon">⚠️</div>
+                    <div>
+                        <strong>Price and delivery are common complaints in negative reviews</strong>
+                        <p style="margin-top: 5px; opacity: 0.9;">42% of negative reviews mention these issues</p>
+                    </div>
+                </div>
+                
+                <div class="insight-item">
+                    <div class="insight-icon">📈</div>
+                    <div>
+                        <strong>Sentiment improved by 18% in the last month</strong>
+                        <p style="margin-top: 5px; opacity: 0.9;">New product features well-received</p>
+                    </div>
+                </div>
+                
+                <div class="insight-item">
+                    <div class="insight-icon">🚚</div>
+                    <div>
+                        <strong>78% of 1-star reviews mention shipping delays</strong>
+                        <p style="margin-top: 5px; opacity: 0.9;">Logistics is the primary pain point</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9️⃣ Export & Share Section -->
+        <div class="section-header">
+            <h2 class="section-title">📤 Export & Share</h2>
+        </div>
+        <div class="chart-container" style="text-align: center;">
+            <div class="export-buttons">
+                <button class="export-btn">
+                    <i class="fas fa-file-pdf"></i> Export PDF Report
+                </button>
+                <button class="export-btn">
+                    <i class="fas fa-download"></i> Download Charts (PNG/SVG)
+                </button>
+                <button class="export-btn">
+                    <i class="fas fa-file-csv"></i> Export Data to CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for charts
+        const sentimentData = [{
+            values: [64, 21, 15],
+            labels: ['Positive', 'Neutral', 'Negative'],
+            type: 'pie',
+            marker: {
+                colors: ['#10b981', '#f59e0b', '#ef4444']
+            }
+        }];
+
+        const sentimentLayout = {
+            title: 'Customer Sentiment Distribution',
+            height: 400
+        };
+
+        const trendData = [{
+            x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            y: [0.65, 0.72, 0.68, 0.75, 0.78, 0.82],
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#667eea', width: 4 },
+            marker: { size: 8 }
+        }];
+
+        const trendLayout = {
+            title: 'Sentiment Trend Over Time',
+            xaxis: { title: 'Month' },
+            yaxis: { title: 'Sentiment Score', range: [0, 1] },
+            height: 400
+        };
+
+        const ratingsData = [{
+            x: [650, 350, 150, 60, 40],
+            y: ['⭐⭐⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐', '⭐⭐', '⭐'],
+            type: 'bar',
+            orientation: 'h',
+            marker: { color: '#f59e0b' }
+        }];
+
+        const ratingsLayout = {
+            title: 'Star Ratings Distribution',
+            xaxis: { title: 'Number of Reviews' },
+            height: 400
+        };
+
+        // Initialize charts
+        Plotly.newPlot('sentiment-chart', sentimentData, sentimentLayout);
+        Plotly.newPlot('trend-chart', trendData, trendLayout);
+        Plotly.newPlot('ratings-chart', ratingsData, ratingsLayout);
+
+        // Add interactivity to buttons
+        document.querySelectorAll('.time-toggle').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.time-toggle').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
